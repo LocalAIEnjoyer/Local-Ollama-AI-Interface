@@ -1,0 +1,1 @@
+CABLE Input (VB-Audio Virtual Cable), Windows DirectSound
