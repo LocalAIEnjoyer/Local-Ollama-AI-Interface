@@ -107,3 +107,8 @@ Current Idea section (Possible Future Features):
 Ending to the document:
 
 If you've read all of the above, Thank you! It means a lot to me that you took the time to read it.
+
+
+
+Special Thanks to:
+MrLagger - Speaking with them gave me some ideas to some of the original features of the project
