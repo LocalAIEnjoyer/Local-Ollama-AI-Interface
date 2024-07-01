@@ -29,10 +29,11 @@ class AILocalInterface:
         
         #Memory Variables
         self.current_saved_memory_limit = False       #Used to find how many "Memories" exist - Boolean
-        self.saved_memory_texts = 0                   #Used to count the number of "Memories" - Integer
+        self.saved_memory_texts = 0                   #Used to count the number of "Memories" and to replace the older ones - Integer
+        self.current_saved_memories = 0
         
         #Memory Message Variable - Used to store the prompt designed for the AI to not focus on the "past"
-        self.memory_input = "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks: "
+        self.memory_input = " "
         
         # Turn off the Microphone for Boot and Start Voice Recognizer
         self.is_mic_on = False
@@ -191,19 +192,34 @@ class AILocalInterface:
     def get_ai_response(self, input_text):   
         #Variable Setup (Memory Input + Memory Count + Current Limit)
         directory = "Memory/"
+        self.memory_refresher = 0
         try:
             #Single Time Loop to figure out how many saved messages exist on boot.
             while self.current_saved_memory_limit != True:
                 current_location = directory + "mem" + str(self.saved_memory_texts + 1) + ".txt"
                 if self.load_settings(current_location) != None and self.load_settings(current_location) != "" and self.saved_memory_texts < self.memory_limit:
                     self.saved_memory_texts += 1
-                    self.memory_input = self.memory_input + self.load_settings(current_location)
                 else:
+                    self.current_saved_memories = self.saved_memory_texts
                     self.current_saved_memory_limit = True
                     
         except Exception as e:
             print(f"Error generating response: {e}")  # Debug print
             return "Sorry, I couldn't generate a response."
+            
+            #Memory provisioning to the AI.
+        try:
+            while self.memory_refresher < self.memory_limit and self.memory_refresher < self.current_saved_memories:
+                current_location = directory + "mem" + str(self.memory_refresher + 1) + ".txt"
+                self.memory_refresher += 1
+                if self.memory_refresher == 1:
+                    self.memory_input = "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks: " + self.load_settings(current_location)
+                else:
+                    self.memory_input = self.memory_input + self.load_settings(current_location)
+        
+        except Exception as e:
+            print(f"Error generating response: {e}")  # Debug print
+            return "Sorry, my memory function broke."
             
             #Message Generation
         try:  
@@ -216,13 +232,15 @@ class AILocalInterface:
                 directory = "Memory/" + "mem" + str(self.saved_memory_texts + 1) + ".txt"
                 self.save_settings(directory, memory_created)
                 self.saved_memory_texts += 1
+                if self.current_saved_memories < self.memory_limit:
+                    self.current_saved_memories += 1
             else:
                 self.saved_memory_texts = 0
                 directory = "Memory/" + "mem" + str(self.saved_memory_texts + 1) + ".txt"
                 self.save_settings(directory, memory_created)
             return ai_response
             
-            # Old code (Single Inquiry Session Based Memory)
+            # Old code (Single Inquiry Session Based Memory) - Here for troubleshooting + If meant to be added in the future as a feature.
         #try:  
             # Send the modified input to Ollama's chat function and get the response
         #    if self.memory_value == 0:
