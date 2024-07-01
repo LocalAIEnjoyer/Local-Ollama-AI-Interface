@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help me improve the Program.
 title: Bug Report - <Replace this name with the Issue>
 labels: ''
-assignees: fakcounte
+assignees: LocalAiEnjoyer
 
 ---
 
