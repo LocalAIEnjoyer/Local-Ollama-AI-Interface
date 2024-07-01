@@ -37,6 +37,8 @@ class AILocalInterface:
         
         # Turn off the Microphone for Boot and Start Voice Recognizer
         self.is_mic_on = False
+        self.micboot = 0
+        self.mic = sr.Microphone()
         self.recognizer = sr.Recognizer()
 
         # Create a frame for better layout management
@@ -139,11 +141,11 @@ class AILocalInterface:
 
     def toggle_mic(self):
         if self.is_mic_on:
-            self.is_mic_on = False
+            self.is_mic_on = not self.is_mic_on
             self.mic_button.config(text="Turn Mic On")
             self.update_processing_indicator(False)
         else:
-            self.is_mic_on = True
+            self.is_mic_on = not self.is_mic_on
             self.mic_button.config(text="Turn Mic Off")
             self.start_listening()
 
@@ -152,20 +154,33 @@ class AILocalInterface:
             threading.Thread(target=self.listen_microphone, daemon=True).start()
 
     def listen_microphone(self):
-        while self.is_mic_on:
+        while self.is_mic_on: 
+            try:
+                with self.mic as source:
+                    self.recognizer.adjust_for_ambient_noise(source, duration=1)
+                    self.update_processing_indicator(True)
                     try:
-                        with sr.Microphone() as source:
-                            self.recognizer.adjust_for_ambient_noise(source, duration=2)
-                            self.update_processing_indicator(True)
-                            audio = self.recognizer.listen(source, timeout=30)
-                            text = self.recognizer.recognize_google(audio)
-                            self.manual_input.delete(0, tk.END)
-                            self.manual_input.insert(0, text)
-                            self.submit_text()
-                            self.update_processing_indicator(False)
-                    except:
-                        self.update_processing_indicator(False)
-                        pass
+                        audio = self.recognizer.listen(source)
+                        print("Got the audio!")
+                    except sr.WaitTimeoutError:
+                        print("You took too long to start speaking!")
+                        continue
+                        
+                    try:
+                        text = self.recognizer.recognize_google(audio)
+                        self.manual_input.delete(0, tk.END)
+                        self.manual_input.insert(0, text)
+                    except sr.UnknownValueError:
+                        print("Google Speech Recognition could not understand the audio")
+                    except sr.RequestError as e:
+                        print(f"Could not request results from Google Speech Recognition service; {e}")
+                    self.update_processing_indicator(False)
+                    self.toggle_mic()
+                    self.submit_text()
+            except Exception as e:
+                print(f"Something went wrong: {e}")
+                self.update_processing_indicator(False)
+                pass
 
     def submit_text(self):
         input_text = self.manual_input.get()
@@ -225,7 +240,7 @@ class AILocalInterface:
         try:  
             ai_response = ollama.chat(model='llama3', messages=[{'role': 'user', 'content': self.context + '"' + input_text + '"' + "." + self.memory_input}])
             ai_response = ai_response['message']['content']
-            memory_created = "User Input: " + input_text + ". Llama3 Response:" + ai_response
+            memory_created = "User Input: " + input_text + ". Llama3 Response: " + ai_response
             
             #Save Memory
             if (self.saved_memory_texts) < self.memory_limit:
@@ -273,12 +288,14 @@ class AILocalInterface:
             # Replace asterisks with periods
             text = text.replace('*', '...')
             communicate = edge_tts.Communicate(text, voice=self.voice)
-            mic_status = self.is_mic_on
-            await communicate.save("response.mp3")
             
-            # Disable microphone button if it's on
-            if self.is_mic_on:
-                self.toggle_mic()  # This will turn off the microphone and disable the button            
+            #Start with Mic Off.
+            if self.micboot == 0:
+                self.micboot = 1
+            else:
+                mic_status = not self.is_mic_on
+            
+            await communicate.save("response.mp3")         
 
             # Disable buttons
             self.mic_button.config(state=tk.DISABLED)
