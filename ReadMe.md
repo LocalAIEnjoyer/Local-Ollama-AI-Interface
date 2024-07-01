@@ -88,7 +88,7 @@ Current Work-In-Progress/Being Reviewed Features:
 -  Better AI Memory - Prompt Engineering to make the AI remember the previous messages, but not focus on them.
 -  AI Model Choise - Being able to select an installed ollama AI (LLM) of your preference.
 -  Memory Clear - Just an easy way to erase all previous message logs to wipe the AI's memory.
--  Automatic Python Requirements Installation - To help end-users to easily install the program.
+-  Automatic Python Requirements Installation - To help end-users to easily install most of the Python Libraries.
 
 
 
