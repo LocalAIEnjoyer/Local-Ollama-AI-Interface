@@ -6,7 +6,7 @@ Hello! I'm not going to extend myself too much on this ReadMe. My name is Mark a
 
 This one of the reasons as for why this project has a GitHub. The other reasons would be for BackUp Purposes, being able to be able to view my progress through this project, to track any bugs I find during any testing and to get feedback on the project and Ideas on how to improve it should you like it!
 
-Lastly, I do want to reference that this project may be viewed similar to some sort of a Neuro-Sama clone or other AI Vtuber clone (I'm not aware of many at the time of writting this).  While that is not the objective of the project, I do want to leave here some praise to Vedal and other Developers that have created similar Programs/Interfaces/Projects to this one. Part of the reason I've created this was due to a dream I had as a kid to create or have my own computer assistant and the other was from seeing people on the internet, such as Vedal with Neuro-Sama, being able to create them.
+Lastly, I do want to reference that this project may be viewed similar to some sort of a Neuro-Sama clone or other AI Vtuber clone (I'm not aware of many at the time of writting this).  While that is not the objective of the project, I do want to leave here some praise to Vedal and other Developers that have created similar Programs/Interfaces/Projects to this one. Part of the reason I've created this was due to an objective I had as a kid to create or have my own computer assistant and the other was from seeing people on the internet, such as Vedal with Neuro-Sama, being able to create them.
 
 
 
@@ -67,7 +67,7 @@ Project Goals:
 
 Currently Implemented Features:
 
--  Speech-to-Text with Ambient Noise filtration - Simple Microphone Voice Recognition. It's not perfect as it sometimes cuts a sentence in half and sends both halfs at the same time, but I'm reviewing ways to improve it. The good news is that it currently works most of the time correctly. It uses the first two seconds after you click to turn on the mic to filter the ambient noise and, afterwards, you can talk into the microphone.
+-  Speech-to-Text with Ambient Noise filtration - Simple Microphone Voice Recognition. It's not perfect as it sometimes cuts a sentence in half and sends both halfs at the same time, but I'm reviewing ways to improve it. The good news is that it currently works most of the time correctly. It uses the first second after you click to turn on the mic to filter the ambient noise and, afterwards, you can talk into the microphone. Uses Google's Speech Recognition which, based on what I found, seems to be free but may have limitations in usage.
 -  AI Conversational User Interface - With this, I'm referring to the bridge between the Python Interface and Ollama which allows a conversation to occur.
 -  AI Conversational Chat Log - A simple chatlog to see the conversation if you don't want or cannot hear it. You can also see if a response has failed to be generated on it.
 -  Text-to-Speech - Currently uses Edge's TTS readers. This means that the program currently requires internet for TTS. Selected Edge as they have clear voices for reading, but they do lack the emotion when reading the answers. This is also being reviewed in order to be improved.
@@ -81,7 +81,7 @@ Currently Implemented Features:
 
 Current Work-In-Progress/Being Reviewed Features:
 
--  Better Speech-to-text - While the current one works as mentioned above, I do want to make it more reliable. As such I'm actively reviewing this aspect of the project.
+-  Better Speech-to-text - While the current one works as mentioned above, I do want to make it more reliable and, if possible, offline. As such I'm actively reviewing this aspect of the project.
 -  Better Text-to-speech - While offline TTS is the current priority to help improve the Project's independence, I do plan on trying to figure on how make the TTS have more emotion while reading the answers.
 -  Better Vtube Studio Compatibility - As mentioned on my Disclaimer, I do use this Project with VTube Studio. This means that I have two easy options for now. 1 - "Have a still avatar that only moves the mouth when speaking" or 2 - "Have a permanently 'bobbing' avatar that moves the mouth when speaking". I want to review how to improve this and/or how to create a method for inputs to be sent directly to Vtube Studio
 -  Settings Menu - Making Configurations be in one single menu instead of having their own dedicated menu.
@@ -89,7 +89,6 @@ Current Work-In-Progress/Being Reviewed Features:
 -  AI Model Choise - Being able to select an installed ollama AI (LLM) of your preference.
 -  Memory Clear - Just an easy way to erase all previous message logs to wipe the AI's memory.
 -  Automatic Python Requirements Installation - To help end-users to easily install most of the Python Libraries.
-
 
 
 
