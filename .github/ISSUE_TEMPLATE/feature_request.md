@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest an idea for this project
 title: Feature Request - <Insert Feature Name Here>
 labels: ''
-assignees: fakcounte
+assignees: LocalAiEnjoyer
 
 ---
 
