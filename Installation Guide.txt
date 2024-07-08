@@ -1,0 +1,53 @@
+
+### Step 1: Installing Python 3.10 (64-bit)
+
+1. **Download Python 3.10 (64-bit)**:
+   - Go to the [official Python website](https://www.python.org/downloads/release/python-3100/).
+   - Scroll down and download the Windows installer for Python 3.10 (64-bit).
+
+2. **Run the Installer**:
+   - Open the downloaded installer.
+   - Check the box that says "Add Python 3.10 to PATH" (this is very important).
+   - Click on "Install Now" and follow the prompts.
+
+3. **Verify the Installation**:
+   - Open Command Prompt (Windows) or Terminal (macOS/Linux).
+   - Type `python --version` and press Enter.
+   - You should see `Python 3.10.x` confirming the installation.
+
+### Step 2: Installing Required Python Libraries
+
+1.  Run the install_packages.py program.
+
+### Step 3: Installing Ollama
+
+1. **Install Ollama CLI**:
+   - Head to https://ollama.com/download to download  Ollama. Make sure to choose the right version for your operating system.
+
+2. **Verify Ollama Installation**:
+   - After installation, verify it by running the following command on cmd or powershell:
+     ```
+     ollama --version
+     ```
+3. **Get an Ollama Model**:
+   - Head to https://ollama.com/library and look for a model. If you're unsure what to choose, I'd recommend mistral or llama3 as a basepoint and you can experiment with other LLMs afterwards.
+
+### Step 4: Setting up and Running the Program
+
+1. **Setup Crucial Settings**:
+   - Upon entering the program, there are a couple settings you will need to update to ensure the program works correctly for you: 
+   - Audio Input Device -> To be able to use the microphone. Make sure to set your device as a Default.
+   - Audio Output Device -> To be able to hear the AI. Make sure to set your device as a Default.
+   - AI Model. -> To be able to interact with the model you downloaded. Please make sure you write it's full name exactly as it is written when you install it (the name is after the "run" command). Here's an example for gemma2: ollama run gemma2 -> AI Model: gemma2
+
+2. **Additional Settings - Non Obligatory**:
+   - Auto-Voice Enabling -> Automatically turns on the Mic after AI response. Not recommended to be enabled as it can crash the app at this time
+   - AI Reader -> Chooses the Edge Reader for the AI. Up to your preference on this.
+   - Restore Base Context -> Not needed to be done on new installations.
+   - Session Only Memory (10 Message Storage Limit) -> If you don't want to have locally stored messages and would rather the AI forget everything after shutting down the program.
+   - Memory Limit -> Decide how much memories the AI stores.
+   - Clear All Saved Memory -> Not needed to be done on new installations.
+   - Boot up in Dark Mode -> Choose if you prefer Dark or Light Mode.
+   
+2. **Reboot the Program**:
+   - While it's not obligatory and you should be able to run it right after updating the settings, I do recommend to restart the program to ensure all is correctly setup. You should hear a "Boot up complete" upon the program's boot completion.
