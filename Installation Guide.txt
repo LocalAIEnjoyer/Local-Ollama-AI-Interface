@@ -35,7 +35,7 @@
 ### Step 4: Setting up and Running the Program
 
 1. **Setup Crucial Settings**:
-   - Upon entering the program, there are a couple settings you will need to update to ensure the program works correctly for you: 
+   - Upon entering the program by doubleclicking the AI_Interface.py file, please head towards the settings as you will need to update them to ensure the program works correctly for you: 
    - Audio Input Device -> To be able to use the microphone. Make sure to set your device as a Default.
    - Audio Output Device -> To be able to hear the AI. Make sure to set your device as a Default.
    - AI Model. -> To be able to interact with the model you downloaded. Please make sure you write it's full name exactly as it is written when you install it (the name is after the "run" command). Here's an example for gemma2: ollama run gemma2 -> AI Model: gemma2
