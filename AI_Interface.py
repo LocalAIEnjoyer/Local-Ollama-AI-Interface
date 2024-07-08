@@ -246,7 +246,7 @@ class AILocalInterface:
                     current_location = directory + "mem" + str(self.memory_refresher + 1) + ".txt"
                     self.memory_refresher += 1
                     if self.memory_refresher == 1:
-                        self.memory_input = "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks: " + self.load_settings(current_location)
+                        self.memory_input = "The following is the context of our current conversation: " + self.load_settings(current_location)
                     else:
                         self.memory_input = self.memory_input + self.load_settings(current_location)
             
@@ -257,7 +257,7 @@ class AILocalInterface:
                 
                 #Message Generation
             try:  
-                ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + '"' + input_text + '"' + "." + self.memory_input}])
+                ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                 ai_response = ai_response['message']['content']
                 memory_created = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 
@@ -290,7 +290,7 @@ class AILocalInterface:
                         self.str1 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 1       
                 elif self.memory_value == 1:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 2:
                         self.memory_value = 2
@@ -299,7 +299,7 @@ class AILocalInterface:
                         self.str1 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 2                              
                 elif self.memory_value == 2:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 3:
                         self.memory_value = 3
@@ -309,7 +309,7 @@ class AILocalInterface:
                         self.str2 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 3
                 elif self.memory_value == 3:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 4:
                         self.memory_value = 4
@@ -320,7 +320,7 @@ class AILocalInterface:
                         self.str3 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 4
                 elif self.memory_value == 4:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 5:
                         self.memory_value = 5
@@ -332,7 +332,7 @@ class AILocalInterface:
                         self.str4 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 5
                 elif self.memory_value == 5:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 6:
                         self.memory_value = 6
@@ -345,7 +345,7 @@ class AILocalInterface:
                         self.str5 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 6
                 elif self.memory_value == 6:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 7:
                         self.memory_value = 7
@@ -359,7 +359,7 @@ class AILocalInterface:
                         self.str6 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 7
                 elif self.memory_value == 7:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 8:
                         self.memory_value = 8
@@ -374,7 +374,7 @@ class AILocalInterface:
                         self.str7 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 8
                 elif self.memory_value == 8:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 9:
                         self.memory_value = 9
@@ -390,7 +390,7 @@ class AILocalInterface:
                         self.str8 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 9
                 elif self.memory_value == 9:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8 + self.str9}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8 + self.str9  + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']
                     if self.memory_limit >= 10:
                         self.memory_value = 10
@@ -407,7 +407,7 @@ class AILocalInterface:
                         self.str9 = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 #Memory Count - 10
                 elif self.memory_value == 10:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': self.context + "'" + input_text + ".'" + "Please be aware that the following messages have been our current conversation and that you can use part of it to help form your response, but please focus on replying to the question that's before this sentence and is within quotations marks:" + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8 + self.str9 + self.str10}])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The following is the context of our current conversation: " + self.str1 + self.str2 + self.str3 + self.str4 + self.str5 + self.str6 + self.str7 + self.str8 + self.str9 + self.str10 + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that" + self.context + input_text }])
                     ai_response = ai_response['message']['content']        
                     self.str1 = self.str2
                     self.str2 = self.str3
@@ -517,7 +517,7 @@ class AILocalInterface:
         
         #Output Device
         output_list = self.get_audio_output_list()
-        selected_output = tk.StringVar(value=self.load_settings("settings/DefaultAudioOutput.txt"))
+        selected_output = tk.StringVar(value=self.load_settings("settings/DefaultAudioOutput.txt").replace(", Windows DirectSound", ""))
         
         output_device_label = tk.Label(settings_window, text="Output Device:", bg=bg_color, fg=fg_color)
         output_device_label.grid(row=3, column=0, columnspan=2, sticky = "w", padx=(5,0), pady=5)
