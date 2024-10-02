@@ -88,12 +88,11 @@ Current Work-In-Progress/Being Reviewed Features:
 -  Better Vtube Studio Compatibility - As mentioned on my Disclaimer, I do use this Project with VTube Studio. This means that I have two easy options for now. 1 - "Have a still avatar that only moves the mouth when speaking" or 2 - "Have a permanently 'bobbing' avatar that moves the mouth when speaking". I want to review how to improve this and/or how to create a method for inputs to be sent directly to Vtube Studio
 -  Better AI Memory - Prompt Engineering to make the AI remember the previous messages, but not focus on them. - **Recently Improved**
 -  Addons Menu - Where you can easily enable Addon's or disable them. Currently only has an empty menu saying none exist.
-
+-  Vtube Studio Addon (Parameter control through Vtube Studio's API's) - Partially functional - Creating Animations right now for it
 
 
 Current Idea section (Possible Future Features to Implement):
 
--  Vtube Studio Addon (Parameter control through Vtube Studio's API's)
 -  Twitch Stream Chat Interaction (Allows the AI to reply to Twich Chat)
 -  Custom Themes
 -  Background Images
@@ -102,7 +101,7 @@ Current Idea section (Possible Future Features to Implement):
 -  Document Analysis
 -  Programmable Dictionary for Specific Actions for Prompts (Ex: Saying "Please review document X" on the question would trigger a specific function of the AI.)
 -  Vision (As in being able to view the user's screen and reacting to it)
-
+-  Translation Feature - Suggested by Awuu (Another AI enthusiast who I consider a friend) :)
 
 
 Ending to the document:
