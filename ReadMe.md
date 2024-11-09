@@ -86,9 +86,10 @@ Current Work-In-Progress/Being Reviewed Features:
 -  Better Speech-to-text - While the current one works as mentioned above, I do want to make it more reliable and, if possible, offline. As such I'm actively reviewing this aspect of the project.
 -  Better Text-to-speech - While offline TTS is the current priority to help improve the Project's independence, I do plan on trying to figure on how make the TTS have more emotion while reading the answers.
 -  Better Vtube Studio Compatibility - As mentioned on my Disclaimer, I do use this Project with VTube Studio. This means that I have two easy options for now. 1 - "Have a still avatar that only moves the mouth when speaking" or 2 - "Have a permanently 'bobbing' avatar that moves the mouth when speaking". I want to review how to improve this and/or how to create a method for inputs to be sent directly to Vtube Studio
--  Better AI Memory - Prompt Engineering to make the AI remember the previous messages, but not focus on them. - **Recently Improved**
+-  Better AI Memory - Prompt Engineering to make the AI remember the previous messages, but not focus too much on them. - **Recently Improved**
 -  Addons Menu - Where you can easily enable Addon's or disable them. Currently only has an empty menu saying none exist.
 -  Vtube Studio Addon (Parameter control through Vtube Studio's API's) - Partially functional - Creating Animations right now for it
+-  Translation Feature - While it's possible to have the AI speak in another language by using the context manager by specifying the language (note that you need to specificy that same language romanized or the voice won't work as it's based on the english language), I believe that a more robust solution needs implementation - Suggested by Awuu (Another AI enthusiast who I consider a friend) :)
 
 
 Current Idea section (Possible Future Features to Implement):
@@ -101,7 +102,6 @@ Current Idea section (Possible Future Features to Implement):
 -  Document Analysis
 -  Programmable Dictionary for Specific Actions for Prompts (Ex: Saying "Please review document X" on the question would trigger a specific function of the AI.)
 -  Vision (As in being able to view the user's screen and reacting to it)
--  Translation Feature - Suggested by Awuu (Another AI enthusiast who I consider a friend) :)
 
 
 Ending to the document:
