@@ -90,7 +90,7 @@ Current Work-In-Progress/Being Reviewed Features:
 -  Addons Menu - Where you can easily enable Addon's or disable them. Currently only has an empty menu saying none exist.
 -  Vtube Studio Addon (Parameter control through Vtube Studio's API's) - Partially functional - Creating Animations right now for it
 -  Translation Feature - While it's possible to have the AI speak in another language by using the context manager by specifying the language (note that you need to specificy that same language romanized or the voice won't work as it's based on the english language), I believe that a more robust solution needs implementation - Suggested by Awuu (Another AI enthusiast who I consider a friend) :)
-
+- Basic Time Awareness - Already functioning - Will be included in the next update (Includes an easter egg inside the code)
 
 Current Idea section (Possible Future Features to Implement):
 
