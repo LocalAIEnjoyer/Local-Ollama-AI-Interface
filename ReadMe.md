@@ -88,7 +88,7 @@ Current Work-In-Progress/Being Reviewed Features:
 -  Better Vtube Studio Compatibility - As mentioned on my Disclaimer, I do use this Project with VTube Studio. This means that I have two easy options for now. 1 - "Have a still avatar that only moves the mouth when speaking" or 2 - "Have a permanently 'bobbing' avatar that moves the mouth when speaking". I want to review how to improve this and/or how to create a method for inputs to be sent directly to Vtube Studio
 -  Better AI Memory - Prompt Engineering to make the AI remember the previous messages, but not focus too much on them. - **Recently Improved**
 -  Addons Menu - Where you can easily enable Addon's or disable them. Currently only has an empty menu saying none exist.
--  Vtube Studio Addon (Parameter control through Vtube Studio's API's) - Partially functional - Creating Animations right now for it
+-  Vtube Studio Addon (Parameter control through Vtube Studio's API's) - Partially functional - Creating Animations right now for it > Some progress on this has been done.
 -  Translation Feature - While it's possible to have the AI speak in another language by using the context manager by specifying the language (note that you need to specificy that same language romanized or the voice won't work as it's based on the english language), I believe that a more robust solution needs implementation - Suggested by Awuu (Another AI enthusiast who I consider a friend) :)
 - Basic Time Awareness - Already functioning - Will be included in the next update (Includes an easter egg inside the code)
 
