@@ -10,7 +10,9 @@ packages = [
     "ollama",
     "edge_tts",
     "sounddevice",
-    "soundfile"
+    "soundfile",
+    "pyvts",
+    "discord.py"
 ]
 
 for package in packages:
