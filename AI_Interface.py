@@ -15,7 +15,7 @@ import uuid
 import pyvts
 import re
 import random
-import discord 
+import discord
 from discord.ext import commands
 
 #VtubeStudioPlugin Details.
@@ -88,20 +88,24 @@ class AILocalInterface:
         #Addon Related Settings/Variables
         self.vtube_enabled = tk.IntVar()
         self.vtube_correction_value = tk.IntVar()
-        if self.load_settings("AddonSettings/VtubeStudio.txt") == "True":
+        if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") == "True":
             self.vtube_correction_value = 2
         else:
             self.vtube_correction_value = 0
         self.vtube_enabled = self.vtube_correction_value
         self.gaming_mode_enabled = tk.IntVar()
-        self.gaming_mode_enabled = self.bool_convert(self.load_settings("AddonSettings/GamingMode.txt"))
+        self.gaming_mode_enabled = self.bool_convert(self.load_settings("AddonSettings\GamingMode\GamingMode.txt"))
         self.discord_addon_enabled = tk.IntVar()
-        self.discord_addon_enabled = self.bool_convert(self.load_settings("AddonSettings/DiscordAddon.txt"))
+        self.discord_addon_enabled = self.bool_convert(self.load_settings("AddonSettings\DiscordAddon\DiscordAddon.txt"))
         self.user_name = "mark_alex"
         self.time_enabled = tk.IntVar()
-        self.time_enabled = self.bool_convert(self.load_settings("AddonSettings/TimeAwareness.txt"))
+        self.time_enabled = self.bool_convert(self.load_settings("AddonSettings\TimeAwareness\TimeAwareness.txt"))
         self.idle_user_awareness_enabled = tk.IntVar()
-        self.idle_user_awareness_enabled = self.bool_convert(self.load_settings("AddonSettings/IdleUserAwareness.txt"))
+        self.idle_user_awareness_enabled = self.bool_convert(self.load_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt"))
+        self.sentiment = " None"
+        self.discord_emote_list = " None"
+        self.discord_emotes = tk.IntVar()
+        self.discord_emotes = self.bool_convert(self.load_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt"))
         
         #Memory Variables
         self.current_saved_memory_limit = False       #Used to find how many "Memories" exist - Boolean
@@ -190,7 +194,6 @@ class AILocalInterface:
 
         # Bind the configure event to the resizing function
         self.master.bind('<Configure>', self.on_resize)
-        self.test_variable = " None"
 
         # Memory Module (Session Based system with 1 integer and 10 strings) - Probably exists a more efficient way to do it
         self.memory_value = 0
@@ -305,21 +308,21 @@ class AILocalInterface:
             #Variable Setup (Memory Input + Memory Count + Current Limit)
             userAbsenceSadness = 0
             directory = "Memory/"
-            if int(self.load_settings("AddonSettings/AbsenceHourTime.txt")) > 168:
-                self.save_settings("AddonSettings/AbsenceHourTime.txt", "168")
+            if int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt")) > 168:
+                self.save_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt", "168")
             if self.time_enabled == 1:
                 if self.load_settings("Memory/LastMessage.txt") == None:
-                    self.save_settings("Memory\LastMessage.txt", self.load_settings("Memory/LatestMessage.txt"))
+                    self.save_settings("Memory\LastMessage.txt", self.load_settings("Memory\LatestMessage.txt"))
                 else:
-                    saved_time = datetime.strptime(self.load_settings("Memory/LastMessage.txt"), "%Y-%m-%d %H:%M:%S") 
-                    if timedelta(hours=int(self.load_settings("AddonSettings/AbsenceHourTime.txt"))) > timedelta(hours=168) :
+                    saved_time = datetime.strptime(self.load_settings("Memory\LastMessage.txt"), "%Y-%m-%d %H:%M:%S") 
+                    if timedelta(hours=int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt"))) > timedelta(hours=168) :
                         saved_time = saved_time + timedelta(hours=int(168))
                     else:
-                        saved_time = saved_time + timedelta(hours=int(self.load_settings("AddonSettings/AbsenceHourTime.txt")))
+                        saved_time = saved_time + timedelta(hours=int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt")))
                     latest_message = datetime.strptime(self.load_settings("Memory/LatestMessage.txt"), "%Y-%m-%d %H:%M:%S")
                     if saved_time < latest_message:
                         userAbsenceSadness = 1
-                        if (saved_time - timedelta(hours=int(self.load_settings("AddonSettings/AbsenceHourTime.txt"))) + timedelta(hours=8597)) < latest_message:
+                        if (saved_time - timedelta(hours=int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt"))) + timedelta(hours=8597)) < latest_message:
                             userAbsenceSadness = 2
                     else:    
                         userAbsenceSadness = 0
@@ -361,8 +364,76 @@ class AILocalInterface:
                     ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content':"The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that it's been a year since the user engaged with you, so you should demonstrate missing them a lot. Please reply to " + usersname + " who said: "  + self.context + input_text }])
                     #fine it's an egg (Josh easter Egg)
                 ai_response = ai_response['message']['content']
-                memory_created = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
                 self.dictionary(ai_response)
+                memory_created = "User Input: " + input_text + ". "+ self.ollama_ai_model + " Response: " + ai_response
+                #Important Note. Emotes only work if give the "Use External Emotes" Permission + if they are named correctly. Here's an example of a properly named emote: <:blush:1326342433805570131>
+                if self.discord_emotes == 1: #1 = enabled
+                    if self.discord_emote_list == " Content":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Content.txt")
+                        emote_list = emote_list.splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list == " Concerned":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Concerned.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list == " Afraid":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Afraid.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Happy":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Happy.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Sad":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Sad.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Surprised":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Surprised.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Angry":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Angry.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Jealous":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Jealous.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Guilty":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Guilty.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Relieved":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Relieved.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Curious":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Curious.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Embarrassed":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Embarrassed.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Excited":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Excited.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Nostalgic":
+                        emote_list = self.load_settings("AddonSettings/DiscordAddon/EmoteList/Nostalgic.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  == " Proud":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Proud.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    elif self.discord_emote_list  != " Proud":
+                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Other.txt").splitlines()
+                        random_emoji = random.choice(emote_list)
+                        self.discord_emote_list = " None"
+                    ai_response = ai_response + " " + random_emoji
                 #Save Memory
                 if (self.saved_memory_texts) < self.memory_limit:
                     directory = "Memory/" + "mem" + str(self.saved_memory_texts + 1) + ".txt"
@@ -541,7 +612,8 @@ class AILocalInterface:
             # Threatening the AI with kittens is a good way to get it to exactly do a specific task, like determining the general emotion for a sentence. This ends up being the easiest way to determine sentiment.
             ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "Your function is to only determine the sentiment of sentences. You only reply with either Happy, Sad, Angry, Afraid, Content, Curious, Surprised, Jealous, Guilty, Excited, Nostalgic, Concerned, Relieved and Proud. You are not allowed to use any other words but only the ones previously mentioned. You're only allowed to use one word no matter what. Everytime you use a word that's not the before specified words, a kitten gets shot to death. Please save the kittens by evaluating the following sentence using only the before mentioned words:" + output}])
             ai_response = ai_response['message']['content']
-            self.test_variable = ai_response
+            self.sentiment = ai_response
+            self.discord_emote_list = ai_response
             print(ai_response) #Test Print for Debugging Purposes only
         except Exception as e:
                 print(f"Error generating response: {e}")  # Debug print
@@ -1047,7 +1119,7 @@ class AILocalInterface:
         #Gaming Mode
         test_info1 = tk.Label(open_addon_manager, text="?", bg=bg_color, fg="#0376a3", font=bold_font, cursor="hand2")
         test_info1.grid(row=2, column=2, sticky="w")
-        ToolTip(test_info1, "Gaming Mode enables the AI to interact with games. \nCurrently this is still in development.", self.is_dark_mode)
+        ToolTip(test_info1, "Gaming Mode enables the AI to interact with games.", self.is_dark_mode)
         #Discord (Lurker) Addon
         test_info2 = tk.Label(open_addon_manager, text="?", bg=bg_color, fg="#0376a3", font=bold_font, cursor="hand2")
         test_info2.grid(row=3, column=2, sticky="w")
@@ -1059,7 +1131,7 @@ class AILocalInterface:
         #Idle User Awareness
         test_info4 = tk.Label(open_addon_manager, text="?", bg=bg_color, fg="#0376a3", font=bold_font, cursor="hand2")
         test_info4.grid(row=5, column=2, sticky="w")
-        ToolTip(test_info4, "Idle User Awareness enables the AI to engage with the User if a specified amount of time\nhas passed without the user interacting with the AI. This amount of time is configurable.\nCurrently this is still in development.", self.is_dark_mode)
+        ToolTip(test_info4, "Idle User Awareness enables the AI to engage with the User if a specified amount of time\nhas passed without the user interacting with the AI. This amount of time is configurable.", self.is_dark_mode)
         #N/A
         test_info5 = tk.Label(open_addon_manager, text="?", bg=bg_color, fg="#0376a3", font=bold_font, cursor="hand2")
         test_info5.grid(row=6, column=2, sticky="w")
@@ -1081,7 +1153,7 @@ class AILocalInterface:
     def open_addon_settings(self):
         open_addon_settings = tk.Toplevel(self.master)
         open_addon_settings.title("Addon Settings")
-        open_addon_settings.geometry(f"470x268")  # Set the window size
+        open_addon_settings.geometry(f"470x338")  # Set the window size
         open_addon_settings.resizable(False, False)
         
         if self.is_dark_mode:
@@ -1129,7 +1201,7 @@ class AILocalInterface:
         discord_settings_label.grid(row=2, column=0, columnspan=3, padx=(5,0), pady=10)
         
         discord_tts_selected_status = tk.StringVar()
-        discord_tts_selected_status.set(self.load_settings("AddonSettings\DiscordTTS.txt"))
+        discord_tts_selected_status.set(self.load_settings("AddonSettings\DiscordAddon\DiscordTTS.txt"))
         discord_tts_status = [ "True", "False"]
         
         discord_tts_label = tk.Label(open_addon_settings, text="Enables or Disables TTS (Doesn't override User Settings):", bg=bg_color, fg=fg_color)
@@ -1138,41 +1210,67 @@ class AILocalInterface:
         discord_tts_combobox = ttk.Combobox(open_addon_settings, textvariable=discord_tts_selected_status, values=discord_tts_status, state='readonly', width=8)
         discord_tts_combobox.grid(row=3, column=1, padx=5, pady=5)
                
-        discord_tts_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordTTS.txt", discord_tts_selected_status.get()), bg=button_bg_color, fg=button_fg_color)
+        discord_tts_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordAddon\DiscordTTS.txt", discord_tts_selected_status.get()), bg=button_bg_color, fg=button_fg_color)
         discord_tts_update_button.grid(row=3, column=2, ipadx=10, padx=5, pady=5)
                 
         discord_online_warning_selected_status = tk.StringVar()
-        discord_online_warning_selected_status.set(self.load_settings("AddonSettings\DiscordOnlineWarning.txt"))
+        discord_online_warning_selected_status.set(self.load_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt"))
         discord_online_warning_status = [ "True", "False"]
         
         discord_online_warning_label = tk.Label(open_addon_settings, text="Enables or Disables Online Warnings in Discord:", bg=bg_color, fg=fg_color)
         discord_online_warning_label.grid(row=4, column=0, sticky = "w", padx=(5,0), pady=5)
                 
-        discord_online_warning_combobox = ttk.Combobox(open_addon_settings, textvariable=discord_online_warning_selected_status, values=discord_online_warning_status, state='readonly', width=8)
-        discord_online_warning_combobox.grid(row=4, column=1, padx=5, pady=5)
+        discord_online_warning_combobox = ttk.Combobox(open_addon_settings, textvariable=discord_online_warning_selected_status, values=discord_online_warning_status, state='readonly', width=16)
+        discord_online_warning_combobox.grid(row=4, column=0, padx=(255, 0), columnspan=2, pady=5)
                
-        discord_online_warning_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordOnlineWarning.txt", discord_online_warning_selected_status.get()), bg=button_bg_color, fg=button_fg_color)
+        discord_online_warning_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt", discord_online_warning_selected_status.get()), bg=button_bg_color, fg=button_fg_color)
         discord_online_warning_update_button.grid(row=4, column=2, ipadx=10, padx=5, pady=5)
+        
+        discord_emote_selected_status = tk.StringVar()
+        discord_emote_selected_status.set(self.load_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt"))
+        discord_emote_status = [ "True", "False"]
+        
+        discord_emote_label = tk.Label(open_addon_settings, text="Enables or Disables Emotes in Discord:", bg=bg_color, fg=fg_color)
+        discord_emote_label.grid(row=5, column=0, sticky = "w", padx=(5,0), pady=5)
+        
+        discord_emote_combobox = ttk.Combobox(open_addon_settings, textvariable=discord_emote_selected_status, values=discord_emote_status, state='readonly', width=24)
+        discord_emote_combobox.grid(row=5, column=0, padx=(208, 0), columnspan=2, pady=5)
+        
+        discord_emote_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt", discord_emote_selected_status.get()), bg=button_bg_color, fg=button_fg_color)
+        discord_emote_update_button.grid(row=5, column=2, ipadx=10, padx=5, pady=5)
+        
+        discord_user_filtering_status = tk.StringVar()
+        discord_user_filtering_status.set(self.load_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt"))
+        discord_user_filtering_options = [ "Offline", "Blacklist", "Whitelist"]
+        
+        discord_user_filtering_label = tk.Label(open_addon_settings, text="Choose the type of User Filtering in Discord:", bg=bg_color, fg=fg_color)
+        discord_user_filtering_label.grid(row=6, column=0, sticky = "w", padx=(5,0), pady=5)
+        
+        discord_user_filtering_combobox = ttk.Combobox(open_addon_settings, textvariable=discord_user_filtering_status, values=discord_user_filtering_options, state='readonly', width=19)
+        discord_user_filtering_combobox.grid(row=6, column=0, padx=(240, 0), columnspan=2, pady=5)
+        
+        discord_user_filtering_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt", discord_user_filtering_status.get()), bg=button_bg_color, fg=button_fg_color)
+        discord_user_filtering_update_button.grid(row=6, column=2, ipadx=10, padx=5, pady=5)
         
         #Time Awareness Settings
         time_awareness_label = tk.Label(open_addon_settings, text="Time Awareness Settings:", bg=bg_color, fg=fg_color)
-        time_awareness_label.grid(row=5, column=0, columnspan=3, padx=(5,0), pady=10)
+        time_awareness_label.grid(row=7, column=0, columnspan=3, padx=(5,0), pady=10)
         
         hour_timer = tk.StringVar()
-        hour_timer.set(self.load_settings("AddonSettings\AbsenceHourTime.txt"))
+        hour_timer.set(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt"))
         
         hour_label = tk.Label(open_addon_settings, text="Total time in hours for the AI to miss you:", bg=bg_color, fg=fg_color)
-        hour_label.grid(row=6, column=0, sticky = "w", padx=(5,0), pady=5)
+        hour_label.grid(row=8, column=0, sticky = "w", padx=(5,0), pady=5)
         
         hour_input = tk.Entry(open_addon_settings, textvariable=hour_timer, width=24)
-        hour_input.grid(row=6, column=0, padx=(222, 0), columnspan=2, pady=5)
+        hour_input.grid(row=8, column=0, padx=(222, 0), columnspan=2, pady=5)
         
-        hour_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\AbsenceHourTime.txt", hour_timer.get()), bg=button_bg_color, fg=button_fg_color)
-        hour_update_button.grid(row=6, column=2, ipadx=10, padx=5, pady=5)
+        hour_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt", hour_timer.get()), bg=button_bg_color, fg=button_fg_color)
+        hour_update_button.grid(row=8, column=2, ipadx=10, padx=5, pady=5)
     
     def vtube_reset(self, confirmation):
         if confirmation == "Confirm" or confirmation == "confirm": 
-            self.save_settings("AddonSettings\VtubeStudioSetup.txt", "0")
+            self.save_settings("AddonSettings\VtubeStudio\VtubeStudioSetup.txt", "0")
                 
     def reload_labels(self):
         self.vtube_studio_addon_status.config(text=self.check_status_vtube("status"), fg=self.check_status_vtube("colour"))
@@ -1207,7 +1305,7 @@ class AILocalInterface:
             self.vtube_enabled = 1
             self.toggle = 1
         toggle_status = self.bolean_translate(self.toggle)
-        self.save_settings("AddonSettings\VtubeStudio.txt", toggle_status)
+        self.save_settings("AddonSettings\VtubeStudio\VtubeStudio.txt", toggle_status)
         self.reload_labels()
 
     def check_gaming_mode(self, request):
@@ -1229,7 +1327,7 @@ class AILocalInterface:
         else:
             self.gaming_mode_enabled = 1
         toggle_status = self.bolean_translate(self.gaming_mode_enabled)
-        self.save_settings("AddonSettings\GamingMode.txt", toggle_status)
+        self.save_settings("AddonSettings\GamingMode\GamingMode.txt", toggle_status)
         self.reload_labels()
         
     def check_discord_addon(self, request):
@@ -1251,7 +1349,7 @@ class AILocalInterface:
         else:
             self.discord_addon_enabled = 1
         toggle_status = self.bolean_translate(self.discord_addon_enabled)
-        self.save_settings("AddonSettings\DiscordAddon.txt", toggle_status)
+        self.save_settings("AddonSettings\DiscordAddon\DiscordAddon.txt", toggle_status)
         self.reload_labels()
 
     def check_idle_user_awareness(self, request):
@@ -1273,7 +1371,7 @@ class AILocalInterface:
         else:
             self.idle_user_awareness_enabled = 1
         toggle_status = self.bolean_translate(self.idle_user_awareness_enabled)
-        self.save_settings("AddonSettings\IdleUserAwareness.txt", toggle_status)
+        self.save_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt", toggle_status)
         self.reload_labels()
     
     def check_status_time(self, request):
@@ -1295,7 +1393,7 @@ class AILocalInterface:
         else:
             self.time_enabled = 1
         toggle_status = self.bolean_translate(self.time_enabled)
-        self.save_settings("AddonSettings\TimeAwareness.txt", toggle_status)
+        self.save_settings("AddonSettings\TimeAwareness\TimeAwareness.txt", toggle_status)
         self.reload_labels()
         
     def bolean_translate(self, value):
@@ -1403,10 +1501,10 @@ class AILocalInterface:
         self.context_manager_window.destroy()
     
     def get_sentiment(self):
-        return self.test_variable
+        return self.sentiment
         
     def update_sentiment(self):
-        self.test_variable = " None"
+        self.sentiment = " None"
 
 async def animation(plugin_info, vts_api_info):
     #I'll be honest. This one may be a bit of a nightmare to read ;-;
@@ -1422,7 +1520,7 @@ async def animation(plugin_info, vts_api_info):
         up_down_count = 0 #Simple integer to count when it finishes going up and down
         i = 0
         #Setup variables
-        if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\VtubeStudioSetup.txt") == "1":
+        if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\VtubeStudio\VtubeStudioSetup.txt") == "1":
             vtube_enabled = 1
         else:
             vtube_enabled = 0
@@ -1433,7 +1531,7 @@ async def animation(plugin_info, vts_api_info):
             await vts.request_authenticate()
             await vts.write_token()
             vtube_enabled = 1
-            AILocalInterface.save_settings(AILocalInterface, "AddonSettings\VtubeStudioSetup.txt", "1")
+            AILocalInterface.save_settings(AILocalInterface, "AddonSettings\VtubeStudio\VtubeStudioSetup.txt", "1")
         else:
             await vts.read_token()
             await vts.request_authenticate()
@@ -1582,55 +1680,167 @@ async def animation(plugin_info, vts_api_info):
 @bot.command()
 async def say(ctx, *, message: str):
     user = ctx.author
-    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\DiscordAddon.txt") == "True":
-        AILocalInterface.save_settings(AILocalInterface, "AddonSettings\DiscordAddonMessage.txt", message)
-        AILocalInterface.save_settings(AILocalInterface, "AddonSettings\DiscordAddonSender.txt", user.name)
+    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\DiscordAddon\DiscordAddon.txt") == "True":
+        AILocalInterface.save_settings(AILocalInterface, "AddonSettings\DiscordAddon\DiscordAddonMessage.txt", message)
+        AILocalInterface.save_settings(AILocalInterface, "AddonSettings\DiscordAddon\DiscordAddonSender.txt", user.name)
+        
+@bot.command()
+async def helpme(ctx):
+    await ctx.reply(f"Hey {ctx.author.mention}! You can use the -helpme command to get help on commands as you just did, use the -say [content] command to speak to me, -blacklist to see who is blacklisted and -whitelist to see who is whitelisted! Hope you enjoy these simple commands ")
 
-#Class dedicated to handle discord plugin tasks (except the command that calls the bot
+@bot.command()
+async def blacklist(ctx):
+    filtered_users_raw = AILocalInterface.load_settings(AILocalInterface, "AddonSettings\DiscordAddon\Filters\Blacklist.txt")
+    filtered_users = filtered_users_raw.split("\n") if filtered_users_raw else []
+    filtered_users = [name.strip() for name in filtered_users if name.strip()]  # Remove empty lines and strip whitespace
+    if len(filtered_users) == 0:
+        user_list = "None"
+    elif len(filtered_users) == 1:
+        user_list = filtered_users[0]
+    elif len(filtered_users) == 2:
+        user_list = f"{filtered_users[0]} and {filtered_users[1]}"
+    else:
+        user_list = ", ".join(filtered_users[:-1]) + f" and {filtered_users[-1]}"
+    if user_list == "None":
+        await ctx.reply(f"Hey {ctx.author.mention}! These are the peeps who are whitelisted: {user_list}. Oh theres none? That's really nice!")  
+    else:
+        await ctx.reply(f"Hey {ctx.author.mention}! These are the peeps who are blacklisted: {user_list}. They were very naughty!!!!")  
+
+@bot.command()
+async def whitelist(ctx):
+    filtered_users_raw = AILocalInterface.load_settings(AILocalInterface, "AddonSettings\DiscordAddon\Filters\Whitelist.txt")
+    filtered_users = filtered_users_raw.split("\n") if filtered_users_raw else []
+    filtered_users = [name.strip() for name in filtered_users if name.strip()]  # Remove empty lines and strip whitespace
+    if len(filtered_users) == 0:
+        user_list = "None"
+    elif len(filtered_users) == 1:
+        user_list = filtered_users[0]
+    elif len(filtered_users) == 2:
+        user_list = f"{filtered_users[0]} and {filtered_users[1]}"
+    else:
+        user_list = ", ".join(filtered_users[:-1]) + f" and {filtered_users[-1]}"
+    if user_list == "None":
+        await ctx.reply(f"Hey {ctx.author.mention}! These are the peeps who are whitelisted: {user_list}. Wait... where.... where are the kind people ;-;")  
+    else:
+        await ctx.reply(f"Hey {ctx.author.mention}! These are the peeps who are whitelisted: {user_list}. They are very kind people!!!!")  
+    
+#Class dedicated to handle some discord plugin tasks
 class DiscordHandler(commands.Cog):
     def __init__(self, bot, ai_interface):
         self.bot = bot
         self.ai_interface = ai_interface
         self.tts = False
-        if self.ai_interface.load_settings("AddonSettings\\DiscordTTS.txt") == "True":
+        if self.ai_interface.load_settings("AddonSettings\DiscordAddon\DiscordTTS.txt") == "True":
             self.tts = True
-
+        self.user_contexts = {}  # Store user contexts for replying
         
     @commands.Cog.listener()
     async def on_ready(self):
         """Called when the bot is ready."""
         #Enables or Disables "I'm online" Warnings based on user preference.
-        if self.ai_interface.load_settings("AddonSettings\\DiscordOnlineWarning.txt") == "True":
+        if self.ai_interface.load_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt") == "True":
             channel = self.bot.get_channel(CHANNEL_ID)
             await channel.send("Hey, I'm online", tts=self.tts)
-        
         # Start the looping function when the bot is ready
         self.bot.loop.create_task(self.looping_function())
     
     async def looping_function(self):
         while self.ai_interface.discord_addon_enabled:
-            input_text = self.ai_interface.load_settings("AddonSettings\DiscordAddonMessage.txt")
-            username = self.ai_interface.load_settings("AddonSettings\DiscordAddonSender.txt")
-            if input_text:
-                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                if self.ai_interface.time_enabled == 1:
-                    self.ai_interface.save_settings("Memory\LatestMessage.txt", current_time)
-                ai_response = self.ai_interface.get_ai_response(input_text, username)
-                self.ai_interface.current_ai_response = ai_response
-                if os.path.exists("AddonSettings\DiscordAddonMessage.txt"):
-                    os.remove("AddonSettings\DiscordAddonMessage.txt")
-                if os.path.exists("AddonSettings\DiscordAddonSender.txt"):
-                    os.remove("AddonSettings\DiscordAddonSender.txt")
-                # Send the AI response
-                channel = bot.get_channel(CHANNEL_ID)
-                if channel:
-                    await channel.send(ai_response, tts=self.tts)
-                    self.ai_interface.update_chat_log(f"You: {input_text}\n")
-                    self.ai_interface.update_chat_log(f"AI: {ai_response}\n")
-                    #Enable if you want to hear her, however please don't send a message while its being read
-                    #threading.Thread(target=asyncio.run, args=(self.ai_interface.speak_response(ai_response, 1),)).start() 
+            input_text = self.ai_interface.load_settings("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+            username = self.ai_interface.load_settings("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
+            userfiltering = self.ai_interface.load_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt")
+            if input_text and username:
+                # Get the stored context for the username
+                ctx = self.user_contexts.get(username)
+                if userfiltering == "Offline":
+                    if ctx:
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        if self.ai_interface.time_enabled == 1:
+                            self.ai_interface.save_settings("Memory\LatestMessage.txt", current_time)
+                        ai_response = self.ai_interface.get_ai_response(input_text, username)
+                        self.ai_interface.current_ai_response = ai_response
+                        if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonMessage.txt"):
+                            os.remove("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+                        if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonSender.txt"):
+                            os.remove("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
+                        # Send the AI response
+                        await ctx.send(ai_response, tts=self.tts)  
+                        #Single Server Replies (with a specific channel)
+                        #channel = bot.get_channel(CHANNEL_ID)
+                        #if channel:
+                        #    await channel.send(ai_response, tts=self.tts)
+                        self.ai_interface.update_chat_log(f"You: {input_text}\n")
+                        self.ai_interface.update_chat_log(f"AI: {ai_response}\n")
+                        #Enable if you want to hear her, however please don't send a message while its being read
+                        #threading.Thread(target=asyncio.run, args=(self.ai_interface.speak_response(ai_response, 1),)).start()
+                elif userfiltering == "Blacklist":
+                    filtered_users_raw = self.ai_interface.load_settings("AddonSettings\DiscordAddon\Filters\Blacklist.txt")
+                    filtered_users = filtered_users_raw.split("\n") if filtered_users_raw else []
+                    filtered_users = [name.strip() for name in filtered_users if name.strip()]  # Remove empty lines and strip whitespace
+                    if ctx: 
+                        if username.lower() not in (name.lower() for name in filtered_users):
+                            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            if self.ai_interface.time_enabled == 1:
+                                self.ai_interface.save_settings("Memory\LatestMessage.txt", current_time)
+                            ai_response = self.ai_interface.get_ai_response(input_text, username)
+                            self.ai_interface.current_ai_response = ai_response
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonMessage.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonSender.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
+                            # Send the AI response
+                            await ctx.send(ai_response, tts=self.tts)  
+                            #Single Server Replies (with a specific channel)
+                            self.ai_interface.update_chat_log(f"You: {input_text}\n")
+                            self.ai_interface.update_chat_log(f"AI: {ai_response}\n")
+                                #Enable if you want to hear her, however please don't send a message while its being read
+                            #threading.Thread(target=asyncio.run, args=(self.ai_interface.speak_response(ai_response, 1),)).start()
+                        else:
+                            await ctx.send("You're not allowed to send messages.", tts=self.tts)
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonMessage.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonSender.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
+                elif userfiltering == "Whitelist":
+                    filtered_users_raw = self.ai_interface.load_settings("AddonSettings\DiscordAddon\Filters\Whitelist.txt")
+                    filtered_users = filtered_users_raw.split("\n") if filtered_users_raw else []
+                    filtered_users = [name.strip() for name in filtered_users if name.strip()]  # Remove empty lines and strip whitespace
+                    if ctx: 
+                        if username.lower() in (name.lower() for name in filtered_users):
+                            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            if self.ai_interface.time_enabled == 1:
+                                self.ai_interface.save_settings("Memory\LatestMessage.txt", current_time)
+                            ai_response = self.ai_interface.get_ai_response(input_text, username)
+                            self.ai_interface.current_ai_response = ai_response
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonMessage.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonSender.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
+                            # Send the AI response
+                            await ctx.send(ai_response, tts=self.tts)  
+                            #Single Server Replies (with a specific channel)
+                            #channel = bot.get_channel(CHANNEL_ID)
+                            #if channel:
+                            #    await channel.send(ai_response, tts=self.tts)
+                            
+                            self.ai_interface.update_chat_log(f"You: {input_text}\n")
+                            self.ai_interface.update_chat_log(f"AI: {ai_response}\n")
+                                #Enable if you want to hear her, however please don't send a message while its being read
+                            #threading.Thread(target=asyncio.run, args=(self.ai_interface.speak_response(ai_response, 1),)).start()
+                        else:
+                            await ctx.send("You're not allowed to send messages.", tts=self.tts)  
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonMessage.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonMessage.txt")
+                            if os.path.exists("AddonSettings\DiscordAddon\DiscordAddonSender.txt"):
+                                os.remove("AddonSettings\DiscordAddon\DiscordAddonSender.txt")
             await asyncio.sleep(1)  # Adjust the interval as needed
     
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        """Tracks user context when a message is sent."""
+        if not message.author.bot:  # Ignore bot messages
+            self.user_contexts[message.author.name] = message.channel  # Store the context
+            
     async def reply(self, message):
         #Send a message to the designated Discord channel
         channel = CHANNEL_ID
@@ -1652,7 +1862,7 @@ if __name__ == "__main__":
     vtube_thread.start()
 
     # Schedule the idle_animation coroutine in the vtube_loop
-    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\\VtubeStudio.txt") == "True":
+    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\VtubeStudio\VtubeStudio.txt") == "True":
         asyncio.run_coroutine_threadsafe(animation(plugin_info, vts_api_info), vtube_loop)
 
     # Start Discord bot loop
@@ -1660,7 +1870,7 @@ if __name__ == "__main__":
     discord_thread = threading.Thread(target=start_asyncio_loop, args=(discord_loop,))
     discord_thread.start()
 
-    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\\DiscordAddon.txt") == "True":
+    if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\DiscordAddon\DiscordAddon.txt") == "True":
         # Pass ai_local_interface to the bot instance  
         asyncio.run_coroutine_threadsafe(bot.add_cog(DiscordHandler(bot, ai_local_interface)), discord_loop)
         asyncio.run_coroutine_threadsafe(bot.start(BOT_TOKEN), discord_loop)
