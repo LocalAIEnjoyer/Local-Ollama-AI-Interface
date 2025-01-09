@@ -1,0 +1,3 @@
+For Custom Emotes (Server emotes) please type them like this: <:blush:1326342433805570131>
+
+to get the emotes ID please do \:emotename:
