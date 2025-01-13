@@ -76,6 +76,8 @@ class AILocalInterface:
         master.geometry("300x500")  # Set the initial size of the window
         master.minsize(300, 500)  # Set the minimum size of the window
         
+        self.settings_format_check() #Checks if the user didn't alter or delete any of the settings to values that would break the code only prior to booting up the code. If the user really wants to break the code, all they need to do is delete a random line and it will have a good chance of breaking the code.
+        
         # Settings folder BootUp
         self.context_file = "Settings/context.txt"
         self.load_context()
@@ -87,21 +89,31 @@ class AILocalInterface:
         
         #Addon Related Settings/Variables
         self.vtube_enabled = tk.IntVar()
-        self.vtube_correction_value = tk.IntVar()
         if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") == "True":
-            self.vtube_correction_value = 2
+            self.vtube_enabled = 2
         else:
-            self.vtube_correction_value = 0
-        self.vtube_enabled = self.vtube_correction_value
+            self.vtube_enabled = 0
         self.gaming_mode_enabled = tk.IntVar()
         self.gaming_mode_enabled = self.bool_convert(self.load_settings("AddonSettings\GamingMode\GamingMode.txt"))
         self.discord_addon_enabled = tk.IntVar()
-        self.discord_addon_enabled = self.bool_convert(self.load_settings("AddonSettings\DiscordAddon\DiscordAddon.txt"))
-        self.user_name = "mark_alex"
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordAddon.txt") == "True":
+            self.discord_addon_enabled = 2
+        else:
+            self.discord_addon_enabled = 0
+        self.user_name = "the user"
         self.time_enabled = tk.IntVar()
         self.time_enabled = self.bool_convert(self.load_settings("AddonSettings\TimeAwareness\TimeAwareness.txt"))
         self.idle_user_awareness_enabled = tk.IntVar()
-        self.idle_user_awareness_enabled = self.bool_convert(self.load_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt"))
+        if self.load_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt") == "True":
+            self.idle_user_awareness_enabled = 2
+        else:
+            self.idle_user_awareness_enabled = 0
+        self.idle_attempts = tk.IntVar()
+        self.idle_attempts = self.bool_convert(self.load_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt"))
+        self.idle_timer = tk.IntVar()
+        self.idle_timer = self.load_settings("AddonSettings\IdleUserAwareness\IdleTimer.txt")
+        self.idle_user = tk.IntVar()
+        self.idle_user = 0
         self.sentiment = " None"
         self.discord_emote_list = " None"
         self.discord_emotes = tk.IntVar()
@@ -116,12 +128,16 @@ class AILocalInterface:
         self.memory_input = " "
         self.memory_refresher = 0
         
+        #Audio Fix Variable
+        self.audio_playing = 0
+        
         # Turn off the Microphone for Boot and Start Voice Recognizer
         self.is_mic_on = False
         self.micboot = 0
         self.mic = sr.Microphone()
         self.recognizer = sr.Recognizer()
         self.auto_voice = self.load_settings("Settings/AutoVoice.txt")
+        self.google_fail = 0
 
         # Create a frame for better layout management
         self.frame = tk.Frame(master, padx=15, pady=15)
@@ -211,7 +227,87 @@ class AILocalInterface:
         #BootUp Experience -> 0 = boot | Other Values = Normal Use
         self.update_chat_log(f"Booting Up\n")
         threading.Thread(target=asyncio.run, args=(self.speak_response("Boot Up Complete", 0),)).start()
-        
+        threading.Thread(target=asyncio.run, args=(self.user_idleness_timer(),)).start()
+    
+    def settings_format_check(self):
+        #Settings Checks
+            #True/False Variable Checks
+        if self.load_settings("Settings/AutoVoice.txt") != "True" and self.load_settings("Settings/AutoVoice.txt") != "False":
+            self.save_settings("Settings/AutoVoice.txt", "False")
+        if self.load_settings("Settings/darkmodestate.txt") != "True" and self.load_settings("Settings/darkmodestate.txt") != "False":
+            self.save_settings("Settings/darkmodestate.txt", "False")
+        if self.load_settings("Settings/SessionMemory.txt") != "True" and self.load_settings("Settings/SessionMemory.txt") != "False":
+            self.save_settings("Settings/SessionMemory.txt", "False")
+            #Int Checks
+        try:
+            int_var_check1 = int(self.load_settings("Settings/MemoryLimit.txt"))
+        except:
+            self.save_settings("Settings/MemoryLimit.txt", "10")
+            #Other Checks
+        input_list = self.get_audio_input_list()
+        try:
+            target_device = self.load_settings("Settings\DefaultAudioInput.txt")
+            if not target_device:
+                self.save_settings("Settings\DefaultAudioInput.txt", str(input_list[0]))
+            elif target_device not in input_list:
+                self.save_settings("Settings\DefaultAudioInput.txt", str(input_list[0]))
+        except Exception as e:
+            self.save_settings("Settings\DefaultAudioInput.txt", str(input_list[0]))
+        output_list = self.get_audio_output_list()
+        try:
+            target_device = self.load_settings("Settings\DefaultAudioOutput.txt")
+            target_device = target_device.removesuffix(", Windows DirectSound")
+            if not target_device:
+                self.save_settings("Settings\DefaultAudioOutput.txt", str(output_list[0]))
+            elif target_device not in output_list:
+                self.save_settings("Settings\DefaultAudioOutput.txt", str(output_list[0]))
+        except Exception as e:
+            self.save_settings("Settings\DefaultAudioOutput.txt", str(output_list[0]))
+        voices = [
+            "en-AU-NatashaNeural", "en-AU-WilliamNeural", "en-CA-ClaraNeural", "en-CA-LiamNeural",
+            "en-GB-LibbyNeural", "en-GB-RyanNeural", "en-IE-EmilyNeural", "en-IE-ConnorNeural", 
+            "en-US-JennyNeural", "en-US-AriaNeural"]
+        if self.load_settings("Settings/SessionMemory.txt") not in voices:
+            self.save_settings("Settings/SpeechReader.txt", "en-CA-ClaraNeural")
+        #Addon Checks
+            #Discord Addon
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordAddon.txt") != "True" and self.load_settings("AddonSettings\DiscordAddon\DiscordAddon.txt") != "False":
+            self.save_settings("AddonSettings\DiscordAddon\DiscordAddon.txt", "False")
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt") != "True" and self.load_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt") != "False":
+            self.save_settings("AddonSettings\DiscordAddon\DiscordEmotes.txt", "False")
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt") != "True" and self.load_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt") != "False":
+            self.save_settings("AddonSettings\DiscordAddon\DiscordOnlineWarning.txt", "False")
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordTTS.txt") != "True" and self.load_settings("AddonSettings\DiscordAddon\DiscordTTS.txt") != "False":
+            self.save_settings("AddonSettings\DiscordAddon\DiscordTTS.txt", "False")
+        if self.load_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt") != "Offline" and self.load_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt") != "Blacklist" and self.load_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt") != "Whitelist":
+            self.save_settings("AddonSettings\DiscordAddon\DiscordUserFiltering.txt", "Offline")
+            #Gaming Mode
+        if self.load_settings("AddonSettings\GamingMode\GamingMode.txt") != "True" and self.load_settings("AddonSettings\GamingMode\GamingMode.txt") != "False":
+            self.save_settings("AddonSettings\GamingMode\GamingMode.txt", "False")
+            #Idle User Awareness
+        if self.load_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt") != "True" and self.load_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt") != "False":
+            self.save_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt", "False")
+        try:
+            int_var_check2 = int(self.load_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt"))
+        except:
+            self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", "0")
+        try:
+            int_var_check3 = int(self.load_settings("AddonSettings\IdleUserAwareness\IdleTimer.txt"))
+        except:
+            self.save_settings("AddonSettings\IdleUserAwareness\IdleTimer.txt", "30")
+            #Time Awareness
+        if self.load_settings("AddonSettings\TimeAwareness\TimeAwareness.txt") != "True" and self.load_settings("AddonSettings\TimeAwareness\TimeAwareness.txt") != "False":
+            self.save_settings("AddonSettings\TimeAwareness\TimeAwareness.txt", "False")
+        try:
+            int_var_check4 = int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt"))
+        except:
+            self.save_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt", "10")
+            #VtubeStudio
+        if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "True" and self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "False":
+            self.save_settings("AddonSettings\VtubeStudio\VtubeStudio.txt", "False")
+        if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "1" and self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "0":
+            self.save_settings("AddonSettings\VtubeStudio\VtubeStudioSetup.txt", "0")
+      
     def load_context(self):
         try:
             with open(self.context_file, "r") as file:
@@ -256,12 +352,12 @@ class AILocalInterface:
                     self.recognizer.adjust_for_ambient_noise(source, duration=1)
                     self.update_processing_indicator(True)
                     try:
-                        audio = self.recognizer.listen(source)
+                        audio = self.recognizer.listen(source, timeout = 2)
                         print("Got the audio!")
                     except sr.WaitTimeoutError:
                         print("You took too long to start speaking!")
+                        self.toggle_mic()
                         continue
-                        
                     try:
                         text = self.recognizer.recognize_google(audio)
                         self.manual_input.delete(0, tk.END)
@@ -270,19 +366,28 @@ class AILocalInterface:
                         print("Google Speech Recognition could not understand the audio")
                     except sr.RequestError as e:
                         print(f"Could not request results from Google Speech Recognition service; {e}")
-                    self.update_processing_indicator(False)
                     self.toggle_mic()
                     self.submit_text()
+                    self.update_processing_indicator(False)
             except Exception as e:
-                print(f"Something went wrong: {e}")
+                if str(e) == "This audio source is already inside a context manager":
+                    if self.google_fail == 0:
+                        print(f"Please wait 3 Seconds for Google's Speech Recognition to fail.")
+                        self.google_fail = 1
+                    else:
+                        self.google_fail = 0
+                else:
+                    print(f"Something went wrong: {e}")
                 self.update_processing_indicator(False)
-                pass
+                self.toggle_mic()
+                return
     
     def submit_text(self):
         input_text = self.manual_input.get()
         self.manual_input.delete(0, tk.END)
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.save_settings("Memory\LatestMessage.txt", current_time)
+        self.idle_user = 0
         if input_text:
             ai_response = self.get_ai_response(input_text, self.user_name)
             self.update_chat_log(f"You: {input_text}\n")
@@ -308,6 +413,15 @@ class AILocalInterface:
             #Variable Setup (Memory Input + Memory Count + Current Limit)
             userAbsenceSadness = 0
             directory = "Memory/"
+            #Input_prep = Input Preparation (Couldn't think of a better name hahaha...)
+            input_pre = ""
+            if self.idle_user_awareness_enabled == 1 and self.idle_user == 0:
+                input_prep = "Please reply to " + username + " who said: "
+            elif self.idle_user_awareness_enabled == 1 and self.idle_user == 1:
+                input_prep = "Please try to get the attention of " + username + "."
+                self.idle_user = 0
+            else:
+                input_prep = "Please reply to " + username + " who said: "            
             if int(self.load_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt")) > 168:
                 self.save_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt", "168")
             if self.time_enabled == 1:
@@ -357,11 +471,11 @@ class AILocalInterface:
             #Message Generation
             try:
                 if userAbsenceSadness == 0:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please reply to " + usersname + " who said: " + self.context + input_text }])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content': "The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply." + self.context + input_prep + input_text }])
                 elif userAbsenceSadness == 1:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content':"The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that it's been a while since the user engaged with you, so you should demonstrate missing them. Please reply to " + usersname + " who said: " + self.context + input_text }])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content':"The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that it's been a while since the user engaged with you, so you should demonstrate missing them." + self.context + input_prep + input_text }])
                 else:
-                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content':"The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that it's been a year since the user engaged with you, so you should demonstrate missing them a lot. Please reply to " + usersname + " who said: "  + self.context + input_text }])
+                    ai_response = ollama.chat(model=self.ollama_ai_model, messages=[{'role': 'user', 'content':"The date and time (GMT) is: " + current_time + "." + self.memory_input + ". You can feel free to use the before provided context to understand the situation and how you reply. Please take into consideration that it's been a year since the user engaged with you, so you should demonstrate missing them a lot." + self.context + input_prep + input_text }])
                     #fine it's an egg (Josh easter Egg)
                 ai_response = ai_response['message']['content']
                 self.dictionary(ai_response)
@@ -369,69 +483,116 @@ class AILocalInterface:
                 #Important Note. Emotes only work if give the "Use External Emotes" Permission + if they are named correctly. Here's an example of a properly named emote: <:blush:1326342433805570131>
                 if self.discord_emotes == 1: #1 = enabled
                     if self.discord_emote_list == " Content":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Content.txt")
-                        emote_list = emote_list.splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Content.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list == " Concerned":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Concerned.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Concerned.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list == " Afraid":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Afraid.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Afraid.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Happy":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Happy.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Happy.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Sad":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Sad.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Sad.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Surprised":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Surprised.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Surprised.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Angry":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Angry.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Angry.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Jealous":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Jealous.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Jealous.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Guilty":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Guilty.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Guilty.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Relieved":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Relieved.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Relieved.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Curious":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Curious.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Curious.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Embarrassed":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Embarrassed.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Embarrassed.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Excited":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Excited.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Excited.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Nostalgic":
-                        emote_list = self.load_settings("AddonSettings/DiscordAddon/EmoteList/Nostalgic.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings/DiscordAddon/EmoteList/Nostalgic.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  == " Proud":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Proud.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Proud.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     elif self.discord_emote_list  != " Proud":
-                        emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Other.txt").splitlines()
-                        random_emoji = random.choice(emote_list)
+                        try:
+                            emote_list = self.load_settings("AddonSettings\DiscordAddon\EmoteList\Other.txt").splitlines()
+                            random_emoji = random.choice(emote_list)
+                        except:
+                            random_emoji = ""
                         self.discord_emote_list = " None"
                     ai_response = ai_response + " " + random_emoji
                 #Save Memory
@@ -448,8 +609,8 @@ class AILocalInterface:
                 return ai_response
             except Exception as e:
                 print(f"Error generating response: {e}")  # Debug print
-                return "Sorry, I couldn't generate a response. - Error B - Probably an emoji or unrecognized character"
-        # Old code below (Session Based Memory) - Dumb System? Yes it is, using elifs is the dumbest way to do this, but it works at least :) - This will eventually be reviewed for optimization, but as the saying says, if it works, then don't fix it xD | Additional, time based addon is not going to be included as a feature for this
+                return "Sorry, I couldn't generate a response. - Error B - Two Possible Errors: Unrecognized Charaters or No Valid Ollama Model. Check the console for the error log."
+        # Old code below (Session Based Memory) - Dumb System? Yes it is, using elifs is the dumbest way to do this, but it works at least :) - This will eventually be reviewed for optimization, but as the saying says, if it works, then don't fix it xD |  Additionally, Addon are not going to be included as a feature for this at this time
         else:
             try:  
                 #Send the modified input to Ollama's chat function and get the response                  
@@ -628,40 +789,36 @@ class AILocalInterface:
         
     async def speak_response(self, text, boot):
         try:
-            # Replace asterisks with periods
-            text = text.replace('*', '...')
-            communicate = edge_tts.Communicate(text, voice=self.voice)
-            mic_status = False
-            #Start with Mic Off.
-            if self.micboot != 0:
-                mic_status = not self.is_mic_on
-            
-            await communicate.save("response.mp3")         
-
-            # Disable buttons
-            self.mic_button.config(state=tk.DISABLED)
-            self.submit_button.config(state=tk.DISABLED)
-
-            # Play sound using threading
-            self.current_audio_thread = threading.Thread(target=self.play_audio, args=("response.mp3",))
-            self.current_audio_thread.start()
-
-            # Wait for audio playback to finish
-            self.current_audio_thread.join()
-
-            # Delete response.mp3 after playback
-            os.remove("response.mp3")
-
-            # Enable buttons and microphone if it was on after playback
-            self.mic_button.config(state=tk.NORMAL)
-            self.submit_button.config(state=tk.NORMAL)         
-            if mic_status and self.auto_voice == "True":
-                self.toggle_mic()
-
-            if boot == 0:
-                self.update_chat_log(f"Boot Up Complete\n")
-
-                
+            if self.audio_playing != 1:
+                # Replace asterisks with periods
+                self.audio_playing = 1
+                text = text.replace('*', '...')
+                communicate = edge_tts.Communicate(text, voice=self.voice)
+                mic_status = False
+                #Start with Mic Off.
+                if self.micboot != 0:
+                    mic_status = not self.is_mic_on
+                await communicate.save("response.mp3")         
+                # Disable buttons - Testing if it's not needed with this audio fix.
+                #self.mic_button.config(state=tk.DISABLED)
+                #self.submit_button.config(state=tk.DISABLED)
+                # Play sound using threading
+                self.current_audio_thread = threading.Thread(target=self.play_audio, args=("response.mp3",))
+                self.current_audio_thread.start()
+                # Wait for audio playback to finish
+                self.current_audio_thread.join()
+                # Delete response.mp3 after playback
+                os.remove("response.mp3")
+                # Enable buttons and microphone if it was on after playback - Testing if it's not needed with this audio fix.
+                #self.mic_button.config(state=tk.NORMAL)
+                #self.submit_button.config(state=tk.NORMAL)
+                #self.audio_playing = 0
+                if mic_status and self.auto_voice == "True":
+                    self.toggle_mic()
+                if boot == 0:
+                    self.update_chat_log(f"Boot Up Complete\n")
+                self.audio_playing = 0
+                    
         except Exception as e:
             print(f"Error during TTS: {e}")  # Debug print
 
@@ -1048,11 +1205,17 @@ class AILocalInterface:
         self.gaming_tick = tk.IntVar()
         self.gaming_tick.set(self.gaming_mode_enabled)
         self.discord_tick = tk.IntVar()
-        self.discord_tick.set(self.discord_addon_enabled)
+        if self.discord_addon_enabled == 2:
+            self.discord_tick.set(1)
+        elif self.discord_addon_enabled == 0:
+            self.discord_tick.set(0)
         self.time_tick = tk.IntVar()
         self.time_tick.set(self.time_enabled)
         self.idle_tick = tk.IntVar()
-        self.idle_tick.set(self.idle_user_awareness_enabled)
+        if self.idle_user_awareness_enabled == 2:
+            self.idle_tick.set(1)
+        elif self.idle_user_awareness_enabled == 0:
+            self.idle_tick.set(0)
         
         
         #Labeling the status of each add-on (Online/Offline/Reboot Needed/Boot Up Failure)
@@ -1153,7 +1316,7 @@ class AILocalInterface:
     def open_addon_settings(self):
         open_addon_settings = tk.Toplevel(self.master)
         open_addon_settings.title("Addon Settings")
-        open_addon_settings.geometry(f"470x338")  # Set the window size
+        open_addon_settings.geometry(f"470x418")  # Set the window size
         open_addon_settings.resizable(False, False)
         
         if self.is_dark_mode:
@@ -1267,6 +1430,22 @@ class AILocalInterface:
         
         hour_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\TimeAwareness\AbsenceHourTime.txt", hour_timer.get()), bg=button_bg_color, fg=button_fg_color)
         hour_update_button.grid(row=8, column=2, ipadx=10, padx=5, pady=5)
+        
+        #Idle User Awareness
+        idle_user_awareness_label = tk.Label(open_addon_settings, text="Idle User Awareness Settings:", bg=bg_color, fg=fg_color)
+        idle_user_awareness_label.grid(row=9, column=0, columnspan=3, padx=(5,0), pady=10)
+        
+        idle_timer = tk.StringVar()
+        idle_timer.set(self.load_settings("AddonSettings\IdleUserAwareness\IdleTimer.txt"))
+        
+        idle_timer_label = tk.Label(open_addon_settings, text="Total idle time in seconds for the AI to message you:", bg=bg_color, fg=fg_color)
+        idle_timer_label.grid(row=10, column=0, sticky = "w", padx=(5,0), pady=5)
+        
+        idle_timer_input = tk.Entry(open_addon_settings, textvariable=idle_timer, width=15)
+        idle_timer_input.grid(row=10, column=0, padx=(277, 0), columnspan=2, pady=5)
+        
+        idle_timer_update_button = tk.Button(open_addon_settings, text="Confirm", command=lambda: self.save_settings("AddonSettings\IdleUserAwareness\IdleTimer.txt", idle_timer.get()), bg=button_bg_color, fg=button_fg_color)
+        idle_timer_update_button.grid(row=10, column=2, ipadx=10, padx=5, pady=5)        
     
     def vtube_reset(self, confirmation):
         if confirmation == "Confirm" or confirmation == "confirm": 
@@ -1297,11 +1476,10 @@ class AILocalInterface:
                 return "#D11919"
  
     def vtube_checkbox_change(self):
-        self.toggle = self.vtube_enabled
         if self.vtube_enabled == 2:
             self.vtube_enabled = 1
             self.toggle = 0
-        elif self.vtube_enabled == 0:
+        else:
             self.vtube_enabled = 1
             self.toggle = 1
         toggle_status = self.bolean_translate(self.toggle)
@@ -1333,46 +1511,95 @@ class AILocalInterface:
     def check_discord_addon(self, request):
         #Checks the request to give the colour and the status
         if request == "status":
-            if self.discord_addon_enabled == 1:
+            if self.discord_addon_enabled == 2:
                 return "Online"
+            elif self.discord_addon_enabled == 1:
+                return "Reboot Needed"
             else:
                 return "Offline"
         elif request == "colour":
-            if self.discord_addon_enabled == 1:
+            if self.discord_addon_enabled == 2:
                 return "#1FE805"
+            elif self.discord_addon_enabled == 1:
+                return "#DE07DE"
             else:
                 return "#D11919"
    
     def discord_addon_change(self):
-        if self.discord_addon_enabled == 1:
-            self.discord_addon_enabled = 0
+        if self.discord_addon_enabled == 2:
+            self.discord_addon_enabled = 1
+            self.toggle = 0
         else:
             self.discord_addon_enabled = 1
-        toggle_status = self.bolean_translate(self.discord_addon_enabled)
+            self.toggle = 1
+        toggle_status = self.bolean_translate(self.toggle)
         self.save_settings("AddonSettings\DiscordAddon\DiscordAddon.txt", toggle_status)
         self.reload_labels()
 
     def check_idle_user_awareness(self, request):
         #Checks the request to give the colour and the status
         if request == "status":
-            if self.idle_user_awareness_enabled == 1:
+            if self.idle_user_awareness_enabled == 2:
                 return "Online"
+            elif self.idle_user_awareness_enabled == 1:
+                return "Reboot Needed"
             else:
                 return "Offline"
         elif request == "colour":
-            if self.idle_user_awareness_enabled == 1:
+            if self.idle_user_awareness_enabled == 2:
                 return "#1FE805"
+            elif self.idle_user_awareness_enabled == 1:
+                return "#DE07DE"
             else:
                 return "#D11919"
    
     def idle_user_awareness_change(self):
-        if self.idle_user_awareness_enabled == 1:
-            self.idle_user_awareness_enabled = 0
+        if self.idle_user_awareness_enabled == 2:
+            self.idle_user_awareness_enabled = 1
+            self.toggle = 0
         else:
             self.idle_user_awareness_enabled = 1
-        toggle_status = self.bolean_translate(self.idle_user_awareness_enabled)
+            self.toggle = 1
+        toggle_status = self.bolean_translate(self.toggle)
         self.save_settings("AddonSettings\IdleUserAwareness\IdleUserAwareness.txt", toggle_status)
         self.reload_labels()
+        
+    def idle_user_text_submit(self):
+        if self.idle_user_awareness_enabled == 1:
+            if self.idle_attempts == 0:
+                input_text = "Make sure to send a message that would reflect you missing them just a bit. After all, they haven't been gone for that long."
+                self.idle_attempts += 1
+                self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", str(self.idle_attempts))
+            elif self.idle_attempts == 1:
+                input_text = "Make sure to send a message that would reflect you're missing a bit more than before as you already tried to reach out once."
+                self.idle_attempts += 1
+                self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", str(self.idle_attempts))
+            elif self.idle_attempts == 2:
+                input_text = "Make sure to send a message that would reflect you really are missing them a lot."
+                self.idle_attempts += 1
+                self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", str(self.idle_attempts))
+            elif self.idle_attempts == 3:
+                input_text = "Make sure to send a message that starts to sound like you're desperate for their attention to you. After all, they shouldn't be ignoring you."
+                self.idle_attempts += 1
+                self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", str(self.idle_attempts))
+            else:
+                input_text = "Make sure you send them a message that shows you're actually angry at them for ignoring you as you have already tried " + str(self.idle_attempts) + " times to reach them."
+                self.idle_attempts += 1
+                self.save_settings("AddonSettings\IdleUserAwareness\IdleAttempts.txt", str(self.idle_attempts))
+            if input_text:
+                ai_response = self.get_ai_response(input_text, "mark_alex")
+                self.update_chat_log(f"AI: {ai_response}\n")
+                threading.Thread(target=asyncio.run, args=(self.speak_response(ai_response, 1),)).start()  # Read out the AI response asynchronously    
+
+    async def user_idleness_timer(self):
+            """Standalone timer loop."""
+            while self.idle_user_awareness_enabled == 1:
+                await asyncio.sleep(int(self.idle_timer))  # Wait for the specified duration
+                if self.load_settings("Memory\LatestMessage.txt") == None:
+                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.save_settings("Memory\LatestMessage.txt", current_time)
+                self.idle_user = 1
+                self.idle_user_text_submit()
     
     def check_status_time(self, request):
         #Checks the request to give the colour and the status
