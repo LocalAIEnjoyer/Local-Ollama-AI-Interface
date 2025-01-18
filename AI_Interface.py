@@ -305,7 +305,7 @@ class AILocalInterface:
             #VtubeStudio
         if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "True" and self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "False":
             self.save_settings("AddonSettings\VtubeStudio\VtubeStudio.txt", "False")
-        if self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "1" and self.load_settings("AddonSettings\VtubeStudio\VtubeStudio.txt") != "0":
+        if self.load_settings("AddonSettings\VtubeStudio\VtubeStudioSetup.txt") != "1" and self.load_settings("AddonSettings\VtubeStudio\VtubeStudioSetup.txt") != "0":
             self.save_settings("AddonSettings\VtubeStudio\VtubeStudioSetup.txt", "0")
       
     def load_context(self):
@@ -2083,13 +2083,11 @@ if __name__ == "__main__":
     instance_id = uuid.uuid4()
     ai_local_interface = AILocalInterface(root, instance_id, plugin_info, vts_api_info)
 
-    # Start vTube loop
-    vtube_loop = asyncio.new_event_loop()
-    vtube_thread = threading.Thread(target=start_asyncio_loop, args=(vtube_loop,))
-    vtube_thread.start()
-
-    # Schedule the idle_animation coroutine in the vtube_loop
+    # Start vTube loop + Schedule the idle_animation coroutine in the vtube_loop
     if AILocalInterface.load_settings(AILocalInterface, "AddonSettings\VtubeStudio\VtubeStudio.txt") == "True":
+        vtube_loop = asyncio.new_event_loop()
+        vtube_thread = threading.Thread(target=start_asyncio_loop, args=(vtube_loop,))
+        vtube_thread.start()
         asyncio.run_coroutine_threadsafe(animation(plugin_info, vts_api_info), vtube_loop)
 
     # Start Discord bot loop
