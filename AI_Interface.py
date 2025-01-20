@@ -1565,7 +1565,7 @@ class AILocalInterface:
         self.reload_labels()
         
     def idle_user_text_submit(self):
-        if self.idle_user_awareness_enabled == 1:
+        if self.idle_user_awareness_enabled == 2:
             if self.idle_attempts == 0:
                 input_text = "Make sure to send a message that would reflect you missing them just a bit. After all, they haven't been gone for that long."
                 self.idle_attempts += 1
@@ -1593,7 +1593,7 @@ class AILocalInterface:
 
     async def user_idleness_timer(self):
             """Standalone timer loop."""
-            while self.idle_user_awareness_enabled == 1:
+            while self.idle_user_awareness_enabled == 2:
                 await asyncio.sleep(int(self.idle_timer))  # Wait for the specified duration
                 if self.load_settings("Memory\LatestMessage.txt") == None:
                     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
